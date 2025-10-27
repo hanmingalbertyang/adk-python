@@ -631,7 +631,10 @@ class LlmAgent(BaseAgent):
 
     # Last event is from another agent, or from user for another agent's tool
     # call. We need to find the last agent we transferred to.
-    for event in reversed(events):
+    # Events without content, potentially from callbacks with state_deltas,
+    # should be skipped as they don't represent a transfer to an agent
+    # that should continue the conversation with the user.
+    for event in (e for e in reversed(events) if e.content):
       if agent := self.__get_transfer_to_agent_or_none(event, self.name):
         return agent
 
